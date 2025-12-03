@@ -323,8 +323,6 @@ void render_t::render_menu()
 {
     static std::int32_t tab = 0;
 
-    static std::int32_t aimbot_subtab = 0;
-
     ImGui::SetNextWindowSize({ 400, 500 }, ImGuiCond_Once);
     ImGui::Begin("External");
 
@@ -374,89 +372,10 @@ void render_t::render_menu()
 
         ImGui::NewLine();
 
-        ImGui::Text("Distance settings");
-        
-        if (ImGui::Button("0-20"))
-        {
-            aimbot_subtab = 0;
-        }
-		ImGui::SameLine();
-		if (ImGui::Button("20-100"))
-		{
-            aimbot_subtab = 1;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("100-200"))
-		{
-            aimbot_subtab = 2;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("200-300"))
-		{
-            aimbot_subtab = 3;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("300-400"))
-		{
-            aimbot_subtab = 4;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("400+"))
-		{
-            aimbot_subtab = 5;
-		}
-
-        switch(aimbot_subtab)
-        {
-        case 0:
-		{
-            ImGui::Text("Selected: 0-20");
-			ImGui::SliderFloat("FOV size", &settings::aimbot::a1::fov, 0.f, 1000.f, "%.0f");
-			ImGui::SliderFloat("Smooth x", &settings::aimbot::a1::smooth_x, 0.f, 500.f, "%.0f");
-			ImGui::SliderFloat("Smooth y", &settings::aimbot::a1::smooth_y, 0.f, 500.f, "%.0f");
-            break;
-        }
-        case 1:
-		{
-            ImGui::Text("Selected: 20-100");
-			ImGui::SliderFloat("FOV size", &settings::aimbot::a2::fov, 0.f, 1000.f, "%.0f");
-			ImGui::SliderFloat("Smooth x", &settings::aimbot::a2::smooth_x, 0.f, 500.f, "%.0f");
-			ImGui::SliderFloat("Smooth y", &settings::aimbot::a2::smooth_y, 0.f, 500.f, "%.0f");
-            break;
-        }
-		case 2:
-		{
-            ImGui::Text("Selected: 100-200");
-			ImGui::SliderFloat("FOV size", &settings::aimbot::a3::fov, 0.f, 1000.f, "%.0f");
-			ImGui::SliderFloat("Smooth x", &settings::aimbot::a3::smooth_x, 0.f, 500.f, "%.0f");
-			ImGui::SliderFloat("Smooth y", &settings::aimbot::a3::smooth_y, 0.f, 500.f, "%.0f");
-			break;
-		}
-		case 3:
-		{
-            ImGui::Text("Selected: 200-300");
-			ImGui::SliderFloat("FOV size", &settings::aimbot::a4::fov, 0.f, 1000.f, "%.0f");
-			ImGui::SliderFloat("Smooth x", &settings::aimbot::a4::smooth_x, 0.f, 500.f, "%.0f");
-			ImGui::SliderFloat("Smooth y", &settings::aimbot::a4::smooth_y, 0.f, 500.f, "%.0f");
-			break;
-		}
-		case 4:
-		{
-            ImGui::Text("Selected: 300-400");
-			ImGui::SliderFloat("FOV size", &settings::aimbot::a5::fov, 0.f, 1000.f, "%.0f");
-			ImGui::SliderFloat("Smooth x", &settings::aimbot::a5::smooth_x, 0.f, 500.f, "%.0f");
-			ImGui::SliderFloat("Smooth y", &settings::aimbot::a5::smooth_y, 0.f, 500.f, "%.0f");
-			break;
-		}
-		case 5:
-		{
-            ImGui::Text("Selected: 400+");
-			ImGui::SliderFloat("FOV size", &settings::aimbot::a6::fov, 0.f, 1000.f, "%.0f");
-			ImGui::SliderFloat("Smooth x", &settings::aimbot::a6::smooth_x, 0.f, 500.f, "%.0f");
-			ImGui::SliderFloat("Smooth y", &settings::aimbot::a6::smooth_y, 0.f, 500.f, "%.0f");
-			break;
-		}
-        }
+        ImGui::Text("Settings");
+		ImGui::SliderFloat("FOV size", &settings::aimbot::fov, 0.f, 1000.f, "%.0f");
+		ImGui::SliderFloat("Smooth x", &settings::aimbot::smooth_x, 0.f, 500.f, "%.0f");
+		ImGui::SliderFloat("Smooth y", &settings::aimbot::smooth_y, 0.f, 500.f, "%.0f");
         break;
     }
     case 1:
@@ -464,6 +383,15 @@ void render_t::render_menu()
 		ImGui::Text("ESP");
 		ImGui::Checkbox("Draw box", &settings::visuals::box);
 		ImGui::ColorEdit4("Box colour", (float*)settings::visuals::colour, ImGuiColorEditFlags_NoInputs);
+
+		ImGui::Checkbox("Draw username", &settings::visuals::username);
+		ImGui::ColorEdit4("Username colour", (float*)settings::visuals::username_colour, ImGuiColorEditFlags_NoInputs);
+
+		ImGui::Checkbox("Draw distance", &settings::visuals::distance);
+		ImGui::ColorEdit4("Distance colour", (float*)settings::visuals::distance_colour, ImGuiColorEditFlags_NoInputs);
+
+		ImGui::Checkbox("Draw healthbar", &settings::visuals::healthbar);
+		ImGui::ColorEdit4("Healthbar colour", (float*)settings::visuals::healthbar_colour, ImGuiColorEditFlags_NoInputs);
 
         ImGui::NewLine();
 

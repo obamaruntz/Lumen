@@ -1,5 +1,6 @@
 ﻿#include "esp.h"
 
+#include <cstdio>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
@@ -25,6 +26,28 @@ namespace esp
 		draw->AddRect(rect_bb.Min, rect_bb.Max, IM_COL32(0, 0, 0, col >> 24), rounding);
 		draw->AddRect({ rect_bb.Min.x - 2.f, rect_bb.Min.y - 2.f }, { rect_bb.Max.x + 2.f, rect_bb.Max.y + 2.f }, IM_COL32(0, 0, 0, col >> 24), rounding);
 		draw->AddRect({ rect_bb.Min.x - 1.f, rect_bb.Min.y - 1.f }, { rect_bb.Max.x + 1.f, rect_bb.Max.y + 1.f }, col, rounding);
+	}
+
+	__forceinline void draw_text_outlined(ImDrawList* draw, ImFont* font, float font_size, ImVec2 pos, ImU32 col, const char* text_begin, const char* text_end = nullptr)
+	{
+		pos.x = std::round(pos.x);
+		pos.y = std::round(pos.y);
+
+		ImU32 outline_col = IM_COL32(0, 0, 0, 255);
+
+		for (int x = -1; x <= 1; x++)
+		{
+			for (int y = -1; y <= 1; y++)
+			{
+				if (x == 0 && y == 0)
+				{
+					continue;
+				}
+				draw->AddText(font, font_size, ImVec2(pos.x + x, pos.y + y), outline_col, text_begin, text_end);
+			}
+		}
+
+		draw->AddText(font, font_size, pos, col, text_begin, text_end);
 	}
 }
 
@@ -113,9 +136,9 @@ void esp::run()
 		if (settings::visuals::teamcheck)
 		{
 			if (entity.team == cache::local_player.team)
-			{
 				continue;
 			}
+			{
 		}
 
 		if (settings::visuals::deadcheck)
@@ -126,26 +149,74 @@ void esp::run()
 			}
 		}
 
+		auto local_root_it = cache::local_player.parts.find("HumanoidRootPart");
+		bool has_local_pos = local_root_it != cache::local_player.parts.end() && local_root_it->second.address;
+
+		float transparency = 255.f;
+		if (settings::visuals::wallcheck && has_local_pos)
+		{
+			math::vector3 local_position = local_root_it->second.get_primitive().get_position();
+			math::vector3 target_position = entity.humanoid_root_part.get_primitive().get_position();
+
+			wallcheck->is_visible(local_position, target_position) ? transparency = 255.f : transparency = 50.f;
+		}
+
 		if (settings::visuals::box)
 		{
-			float transparency = 255.f;
+			esp::outline(c1, c2, IM_COL32(settings::visuals::colour[0] * 255.f, settings::visuals::colour[1] * 255.f, settings::visuals::colour[2] * 255.f, settings::visuals::colour[3] * transparency));
+		}
 
-			if (settings::visuals::wallcheck)
+		if (settings::visuals::healthbar)
+		{
+			float health_percent = 0.f;
+			if (entity.max_health > 0.f)
 			{
-				math::vector3 local_position = memory->read<math::vector3>(game::camera + Offsets::Camera::Position);
-				math::vector3 target_position = entity.humanoid_root_part.get_primitive().get_position();
-
-				wallcheck->is_visible(local_position, target_position) ? transparency = 255.f : transparency = 50.f;
+				health_percent = entity.health / entity.max_health;
+				if (health_percent < 0.f) health_percent = 0.f;
+				if (health_percent > 1.f) health_percent = 1.f;
 			}
 
-			esp::outline(c1, c2,
-				IM_COL32(
-					settings::visuals::colour[0] * 255.f,
-					settings::visuals::colour[1] * 255.f,
-					settings::visuals::colour[2] * 255.f,
-					settings::visuals::colour[3] * transparency,
-				)
-			);
+			float box_left = std::round(c1.x);
+			float box_top = std::round(c1.y);
+			float box_bottom = std::round(c1.y + c2.y);
+
+			draw->AddRectFilled(ImVec2(box_left - 6.f, box_top - 2.f), ImVec2(box_left - 3.f, box_bottom + 2.f), IM_COL32(0, 0, 0, 255));
+			if (health_percent > 0.f)
+			{
+				draw->AddRectFilled(ImVec2(box_left - 5.f, (box_bottom + 1.f) - ((box_bottom - box_top + 2.f) * health_percent)), ImVec2(box_left - 4.f, box_bottom + 1.f), IM_COL32(settings::visuals::healthbar_colour[0] * 255.f, settings::visuals::healthbar_colour[1] * 255.f, settings::visuals::healthbar_colour[2] * 255.f, settings::visuals::healthbar_colour[3] * transparency));
+			}
+		}
+
+		if (settings::visuals::username)
+		{
+			ImFont* font = ImGui::GetFont();
+			float font_size = ImGui::GetFontSize();
+			float text_width = font->CalcTextSizeA(font_size, FLT_MAX, 0.f, entity.name.c_str()).x;
+
+			esp::draw_text_outlined(draw, font, font_size,
+				ImVec2(std::round(c1.x + (c2.x * 0.5f) - (text_width * 0.5f)), std::round(c1.y) - 2.f - 2.f - 1.f - font_size),
+				IM_COL32(settings::visuals::username_colour[0] * 255.f, settings::visuals::username_colour[1] * 255.f, settings::visuals::username_colour[2] * 255.f, settings::visuals::username_colour[3] * transparency),
+				entity.name.c_str());
+		}
+
+		if (settings::visuals::distance)
+		{
+			auto target_it = entity.parts.find("HumanoidRootPart");
+			
+			if (has_local_pos && target_it != entity.parts.end() && target_it->second.address)
+			{
+				char distance_str[32];
+				std::snprintf(distance_str, sizeof(distance_str), "%.0f", local_root_it->second.get_primitive().get_position().distance(target_it->second.get_primitive().get_position()));
+
+				ImFont* font = ImGui::GetFont();
+				float font_size = ImGui::GetFontSize();
+				float text_width = font->CalcTextSizeA(font_size, FLT_MAX, 0.f, distance_str).x;
+
+				esp::draw_text_outlined(draw, font, font_size,
+					ImVec2(std::round(c1.x + (c2.x * 0.5f) - (text_width * 0.5f)), std::round(c1.y + c2.y) + 2.f + 2.f + 1.f),
+					IM_COL32(settings::visuals::distance_colour[0] * 255.f, settings::visuals::distance_colour[1] * 255.f, settings::visuals::distance_colour[2] * 255.f, settings::visuals::distance_colour[3] * transparency),
+					distance_str);
+			}
 		}
 
 		if (settings::visuals::debug_wallcheck)
@@ -194,11 +265,7 @@ void esp::run()
 					}
 
 					if (p1.x != -1 && p1.y != -1 && p2.x != -1 && p2.y != -1) {
-						ImGui::GetForegroundDrawList()->AddLine(
-							{ p1.x, p1.y },
-							{ p2.x, p2.y },
-							IM_COL32(0, 255, 200, 255)
-						);
+						ImGui::GetForegroundDrawList()->AddLine({ p1.x, p1.y }, { p2.x, p2.y }, IM_COL32(0, 255, 200, 255));
 					}
 				}
 			}

@@ -70,6 +70,6 @@ void cache::run()
 			cache::players = std::move(temp_cache);
 		}
 
-		std::this_thread::sleep_for(1s);
+		std::this_thread::sleep_for(0.1s);
 	}
 }
