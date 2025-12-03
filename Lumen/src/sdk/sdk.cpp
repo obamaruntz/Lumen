@@ -280,3 +280,23 @@ bool rbx::c_visualengine::world_to_screen(const math::matrix4& view, const math:
 
 	return true;
 }
+
+math::matrix3 rbx::c_camera::get_rotation()
+{
+	return memory->read<math::matrix3>(this->address + Offsets::Camera::Rotation);
+}
+
+math::vector3 rbx::c_camera::get_position()
+{
+	return memory->read<math::vector3>(this->address + Offsets::Camera::Position);
+}
+
+void rbx::c_camera::set_rotation(const math::matrix3& value)
+{
+	memory->write<math::matrix3>(this->address + Offsets::Camera::Rotation, value);
+}
+
+float rbx::c_camera::get_field_of_view()
+{
+	return memory->read<float>(this->address + Offsets::Camera::FieldOfView);
+}

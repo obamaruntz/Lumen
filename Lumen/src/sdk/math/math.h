@@ -191,4 +191,31 @@ namespace math
 			return cframe(inv_rot, inv_pos);
 		}
 	};
+
+	inline matrix3 look_at(const vector3& from, const vector3& to)
+	{
+		vector3 forward = (to - from).normalized();
+		
+		vector3 up_ref(0, 1, 0);
+		if (std::abs(forward.dot(up_ref)) > 0.99f)
+		{
+			up_ref = vector3(1, 0, 0);
+		}
+		
+		vector3 right = forward.cross(up_ref).normalized();
+		vector3 up = right.cross(forward).normalized();
+
+		matrix3 result{};
+		result.m[0][0] = -right.x;
+		result.m[0][1] = up.x;
+		result.m[0][2] = -forward.x;
+		result.m[1][0] = -right.y;
+		result.m[1][1] = up.y;
+		result.m[1][2] = -forward.y;
+		result.m[2][0] = -right.z;
+		result.m[2][1] = up.z;
+		result.m[2][2] = -forward.z;
+
+		return result;
+	}
 }

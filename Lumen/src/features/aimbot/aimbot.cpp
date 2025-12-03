@@ -315,6 +315,19 @@ void aimbot::run()
 
 	for (;;)
 	{
+		if (settings::aimbot::camera::enabled)
+		{
+			math::matrix4 view = game::visualengine->get_viewmatrix();
+			math::vector2 dims = game::visualengine->get_dimensions();
+
+			cache::entity_t player = get_closest_player(view, dims);
+			if (player.instance.address != 0)
+			{
+				aimbot::player = player;
+				camera_aimbot();
+			}
+		}
+
 		if (!settings::aimbot::enabled)
 		{
 			Sleep(1);
@@ -353,5 +366,68 @@ void aimbot::run()
 
 		Sleep(1);
 		//std::this_thread::sleep_for(1ms);
+	}
+}
+
+void aimbot::camera_aimbot()
+{
+	if (!game::datamodel || !game::datamodel->address)
+	{
+		return;
+	}
+
+	rbx::c_workspace workspace = game::datamodel->get_workspace();
+	if (!workspace.address)
+	{
+		return;
+	}
+
+	std::uint64_t camera_address = workspace.find_first_child_by_class("Camera");
+	if (!camera_address)
+	{
+		return;
+	}
+
+	rbx::c_camera camera{ camera_address };
+
+	if (!camera.address)
+	{
+		return;
+	}
+
+	if (aimbot::player.instance.address == 0)
+	{
+		return;
+	}
+
+	auto head_it = aimbot::player.parts.find("Head");
+	if (head_it == aimbot::player.parts.end() || !head_it->second.address)
+	{
+		return;
+	}
+
+	math::vector3 camera_pos = camera.get_position();
+	math::vector3 target_pos = head_it->second.get_primitive().get_position();
+
+	math::matrix3 target_rot = math::look_at(camera_pos, target_pos);
+
+	if (settings::aimbot::camera::smoothing_enabled)
+	{
+		math::matrix3 camera_rot = camera.get_rotation();
+		float t = settings::aimbot::camera::smoothing_value * 50.f;
+		float k = 1.0f / t;
+		math::matrix3 result{};
+		for (std::int32_t i = 0; i < 3; i++)
+		{
+			for (std::int32_t j = 0; j < 3; j++)
+			{
+				result.m[i][j] = camera_rot.m[i][j] + (target_rot.m[i][j] - camera_rot.m[i][j]) * k;
+			}
+		}
+		camera.set_rotation(result);
+	}
+	else
+	{
+		camera.set_rotation(target_rot);
 	}
 }
