@@ -251,45 +251,6 @@ static float get_world_distance_to_entity(cache::entity_t& entity)
 	return local_pos.distance(target_pos);
 }
 
-static void get_distance_based_settings(float world_distance, float& fov, float& smooth_x, float& smooth_y)
-{
-	if (world_distance < 20.0f)
-	{
-		fov = settings::aimbot::a1::fov;
-		smooth_x = settings::aimbot::a1::smooth_x;
-		smooth_y = settings::aimbot::a1::smooth_y;
-	}
-	else if (world_distance < 100.0f)
-	{
-		fov = settings::aimbot::a2::fov;
-		smooth_x = settings::aimbot::a2::smooth_x;
-		smooth_y = settings::aimbot::a2::smooth_y;
-	}
-	else if (world_distance < 200.0f)
-	{
-		fov = settings::aimbot::a3::fov;
-		smooth_x = settings::aimbot::a3::smooth_x;
-		smooth_y = settings::aimbot::a3::smooth_y;
-	}
-	else if (world_distance < 300.0f)
-	{
-		fov = settings::aimbot::a4::fov;
-		smooth_x = settings::aimbot::a4::smooth_x;
-		smooth_y = settings::aimbot::a4::smooth_y;
-	}
-	else if (world_distance < 400.0f)
-	{
-		fov = settings::aimbot::a5::fov;
-		smooth_x = settings::aimbot::a5::smooth_x;
-		smooth_y = settings::aimbot::a5::smooth_y;
-	}
-	else
-	{
-		fov = settings::aimbot::a6::fov;
-		smooth_x = settings::aimbot::a6::smooth_x;
-		smooth_y = settings::aimbot::a6::smooth_y;
-	}
-}
 
 static cache::entity_t get_closest_player(const math::matrix4& view, const math::vector2& dims)
 {
@@ -330,14 +291,9 @@ static cache::entity_t get_closest_player(const math::matrix4& view, const math:
 			continue;
 		}
 
-		float fov{};
-		float smooth_x{};
-		float smooth_y{};
-		get_distance_based_settings(world_distance, fov, smooth_x, smooth_y);
-
 		float distance{};
 		math::vector2 target_screen{};
-		if (!get_target_point_for_entity(entity, view, dims, fov, distance, target_screen))
+		if (!get_target_point_for_entity(entity, view, dims, settings::aimbot::fov, distance, target_screen))
 		{
 			continue;
 		}
@@ -388,16 +344,11 @@ void aimbot::run()
 			continue;
 		}
 
-		float fov{};
-		float smooth_x{};
-		float smooth_y{};
-		get_distance_based_settings(world_distance, fov, smooth_x, smooth_y);
-
 		float distance{};
 		math::vector2 target_screen{};
-		if (get_target_point_for_entity(player, view, dims, fov, distance, target_screen))
+		if (get_target_point_for_entity(player, view, dims, settings::aimbot::fov, distance, target_screen))
 		{
-			mouse_aim(target_screen, smooth_x, smooth_y);
+			mouse_aim(target_screen, settings::aimbot::smooth_x, settings::aimbot::smooth_y);
 		}
 
 		Sleep(1);
