@@ -347,6 +347,18 @@ void render_t::render_menu()
         ImGui::Text("Aimbot");
         ImGui::Checkbox("Enable aimbot", &settings::aimbot::enabled);
 
+        ImGui::NewLine();
+
+        ImGui::Text("Camera Aimbot");
+        ImGui::Checkbox("Enable camera aimbot", &settings::aimbot::camera::enabled);
+        ImGui::Checkbox("Smoothing", &settings::aimbot::camera::smoothing_enabled);
+        if (settings::aimbot::camera::smoothing_enabled)
+        {
+            ImGui::SliderFloat("Smoothing value", &settings::aimbot::camera::smoothing_value, 0.1f, 50.f, "%.1f");
+        }
+
+        ImGui::NewLine();
+
         static constexpr const char* const parts
         {
             "Closest\0Head\0Torso\0HumanoidRootPart"

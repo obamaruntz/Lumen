@@ -24,6 +24,7 @@ namespace rbx
 	struct c_datamodel;
 	struct c_workspace;
 	struct c_visualengine;
+	struct c_camera;
 
 	/* SDK classes */
 	struct c_addressable
@@ -172,6 +173,16 @@ namespace rbx
 			const math::vector3& world,
 			math::vector2& out
 		);
+	};
+
+	struct c_camera final : public c_addressable
+	{
+		using c_addressable::c_addressable;
+
+		math::matrix3 get_rotation();
+		math::vector3 get_position();
+		void set_rotation(const math::matrix3& value);
+		float get_field_of_view();
 	};
 }
 

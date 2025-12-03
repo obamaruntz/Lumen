@@ -6,4 +6,5 @@ namespace aimbot
 	inline cache::entity_t player{};
 
 	void run();
+	void camera_aimbot();
 }

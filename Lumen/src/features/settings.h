@@ -13,6 +13,13 @@ namespace settings
 		inline bool deadcheck = false;
 		inline bool wallcheck = false;
 
+		namespace camera
+		{
+			inline bool enabled = false;
+			inline bool smoothing_enabled = false;
+			inline float smoothing_value = 10.f;
+		}
+
 		namespace a1
 		{
 			inline float fov = 10.f;
