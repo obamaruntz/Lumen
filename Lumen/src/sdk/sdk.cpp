@@ -1,6 +1,7 @@
 ﻿#include "sdk.h"
 
 #include <memory/memory.h>
+#include <game/game.h>
 
 std::string rbx::c_nameable::get_name()
 {
@@ -230,8 +231,16 @@ std::string rbx::c_datamodel::get_server_ip()
 
 math::vector2 rbx::c_visualengine::get_dimensions()
 {
+	HWND roblox_window = game::get_roblox_window();
+	if (roblox_window)
+	{
+		RECT client_rect{};
+		if (GetClientRect(roblox_window, &client_rect))
+		{
+			return { (float)(client_rect.right - client_rect.left), (float)(client_rect.bottom - client_rect.top) };
+		}
+	}
 	return { (float)GetSystemMetrics(SM_CXSCREEN), (float)GetSystemMetrics(SM_CYSCREEN) };
-	//return { memory->read<math::vector2>(address + Offsets::VisualEngine::Dimensions) };
 }
 
 math::matrix4 rbx::c_visualengine::get_viewmatrix()
@@ -253,6 +262,21 @@ bool rbx::c_visualengine::world_to_screen(const math::matrix4& view, const math:
 
 	out.x = (dims.x * 0.5f * clip.x) + (dims.x * 0.5f);
 	out.y = -(dims.y * 0.5f * clip.y) + (dims.y * 0.5f);
+
+	HWND roblox_window = game::get_roblox_window();
+	if (roblox_window)
+	{
+		RECT client_rect{};
+		POINT client_pos{};
+		if (GetClientRect(roblox_window, &client_rect))
+		{
+			client_pos.x = client_rect.left;
+			client_pos.y = client_rect.top;
+			ClientToScreen(roblox_window, &client_pos);
+			out.x += (float)client_pos.x;
+			out.y += (float)client_pos.y;
+		}
+	}
 
 	return true;
 }
